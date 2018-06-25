@@ -71,7 +71,8 @@ class App extends React.Component{
 		let value = this.state.value;
 		if(statusEditName[i]) {
 			nameMarker[i]=value;
-			this.setState({nameMarker})
+			value='';
+			this.setState({nameMarker,value})
 		}
 		statusEditName[i]=!statusEditName[i];
 		this.setState({
