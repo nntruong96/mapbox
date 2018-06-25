@@ -17,6 +17,7 @@ const Map = ReactMapboxGl({
   accessToken
 });
 
+
 class App extends React.Component{
 	constructor(props){
 		super(props);
@@ -24,8 +25,12 @@ class App extends React.Component{
 		coordinates:[],
 		status: false,
 		statusMarker:[],
-		}
-		this._onClickMap= this._onClickMap.bind(this)
+		statusEditName: [],
+		value: '',
+		nameMarker:[],
+		};
+		this._onClickMap= this._onClickMap.bind(this);
+		this.handleChange = this.handleChange.bind(this);
 	}
 
 	handleclick(cd){
@@ -39,7 +44,6 @@ class App extends React.Component{
 			})
 		}
 	}
-
 	buttonClick(){
 		let status =!this.state.status;
 		this.setState({
@@ -58,16 +62,30 @@ class App extends React.Component{
 			statusMarker
 		})
 	}
+	 handleChange(evt) {
+    this.setState({value: evt.target.value});
+  }
+	editName(i,evt){
+		let statusEditName = [...this.state.statusEditName];
+		let nameMarker = [...this.state.nameMarker];
+		let value = this.state.value;
+		if(statusEditName[i]) {
+			nameMarker[i]=value;
+			this.setState({nameMarker})
+		}
+		statusEditName[i]=!statusEditName[i];
+		this.setState({
+			statusEditName
+		})
+	}
 	render(){
 		return(
 			<div>
-
-				<Button onClick={() => this.buttonClick()} class = "btn"><img src={require("./marker.svg")} height = "20"/></Button>
-				<Map
+				<div><Button onClick={() => this.buttonClick()} class = "btn"><img src={require("./marker.svg")} height = "20"/></Button></div>
+				<div><Map
 				    style={styles}
 				    containerStyle={mapStyle}
 				 	onClick = {this._onClickMap}>
-
 					{this.state.coordinates.map((marker, i) =>{
 						return (
 						<div key= {i} >
@@ -75,23 +93,32 @@ class App extends React.Component{
 		  						coordinates={marker}
 		  						anchor="bottom"
 		  						onClick = {() => this.markerclick(i)}>
-
 		  						<img src={require("./marker.svg")} height = "35"/>
 							</Marker>
 							{this.state.statusMarker[i] ? 
 								<Popup
 								    coordinates={marker}
-								    offset={{
-								    'bottom-left': [12, -38],  'bottom': [0, -38], 'bottom-right': [-12, -38]
-								    }}>
+								    offset={{'bottom-left': [12, -38],  'bottom': [0, -38], 'bottom-right': [-12, -38]}}>
+								    {this.state.statusEditName[i] ? 
+								  		<div>
+								  		<p>
+								  			<input type="text" value={this.state.value} onChange={this.handleChange}  />
+									    	<button class ="btn" onClick={()=> this.editName(i)}><img src={require("./submit-icon.png")} height = "15"/></button>
+									    </p>
+									    </div> : <div>
+									    	<p>Name: {this.state.nameMarker[i]}
+									    	<button class ="btn" onClick={()=> this.editName(i)}><img src={require("./edit-icon.png")} height = "15"/></button>
+									    	</p>
+									    </div>
+									}
 								  	<p>{this.state.coordinates[i].lng} ; {this.state.coordinates[i].lat}</p>
 								</Popup> : ''
 							}
 						</div>
 						);
-						})
-					}
+					})}
 				</Map>
+				</div>
 			</div>
 		);
 	}
