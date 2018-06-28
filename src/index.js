@@ -149,6 +149,7 @@ class App extends React.Component{
 				{/* Nút tạo Marker*/}
 				<div class="btn-row">
 					<div><Create/>  </div>
+					<div><EditIcon/>  </div>
 					<div><FlatButton class="btn" onClick={() => this.buttonClick()} class = "btn"><img src={require("./marker.svg")} height = "20"/></FlatButton></div>
 					<div><OpenFolder updateData = {this.updateData} /></div>					
 				</div>
