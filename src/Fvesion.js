@@ -7,7 +7,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import FlatButton from 'material-ui/FlatButton';
 import Edit from './EditIcon';
 import Create from './SendIcon';
-import InputName from './Input';
+import InputName from './input';
 import OpenFolder from './OpenFolderIcon';
 import *as MapboxGL from 'mapbox-gl';
 import GeojsonLayer from './GeoJSONLayer';
@@ -15,19 +15,22 @@ import axios from 'axios';
 //import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col,Button  } from 'reactstrap';
 import MapMarkers from './MapMarkers';
-//import dataGeojson from './map.geojson';
-import LoadGeojson from './LoadGeojson';
-import Upload from 'material-ui-upload/Upload';
-
+import dataGeojson from './map.geojson';
+//const data =require("./map.geojson");
 const accessToken = "pk.eyJ1IjoiYWxleDMxNjUiLCJhIjoiY2o0MHp2cGtiMGFrajMycG5nbzBuY2pjaiJ9.QDApU0XH2v35viSwQuln5w";
 const styles = "mapbox://styles/mapbox/streets-v9";
 const mapStyle = {
   height: '97vh',
   width: '100vw'
 };
-
 const Map = ReactMapboxGl({
   accessToken
+});
+
+var data;
+axios.get(dataGeojson)
+	.then(function(response) {
+	data = response.data;
 });
 
 class App extends React.Component{
@@ -42,15 +45,14 @@ class App extends React.Component{
 		nameMarker:[],// Mảng lưu tên Markers
 		mapMarkers:[],
 		geojson:{},
-		data:{},
-		stutsUpdata:false
+		text: false
+		
 		};
 		this._onClickMap= this._onClickMap.bind(this);
 		this.handleChange = this.handleChange.bind(this);
+		this.pl = this.pl.bind(this);
 		this.updateLocationMarkers = this.updateLocationMarkers.bind(this);
-		this.updateData = this.updateData.bind(this);
 	}
-
 
 	// lưu tọa độ Marker
 	handleclick(cd){
@@ -64,7 +66,7 @@ class App extends React.Component{
 				status
 			})
 		}
-		//console.log(coordinates);
+		console.log(coordinates);
 	}
 	// Thai đổi trạng thái của nút tạo Marker
 	buttonClick(){
@@ -72,7 +74,7 @@ class App extends React.Component{
 		this.setState({
 			status
 		})
-	//	console.log(status);
+		console.log(status);
 	}
 
 	_onClickMap(map, evt) {
@@ -116,52 +118,55 @@ class App extends React.Component{
 		})	
 	}
 
+	pl(){
+		let mapMarkers = [...this.state.mapMarkers];
+		let geojson = [...this.state.geojson];
+		var coordinates;
+		const features=[];
+		let text =[...this.state.text]
+
+		text= !this.state.text;
+		geojson = data;
+		data.features.map((value,i)=>(
+			value.type == "Marker" ? (coordinates=value.geometry.coordinates, mapMarkers.push({coordinates})): features.push(value)
+			))
+		geojson.features=features;
+		this.setState({
+	      mapMarkers,
+	      geojson,
+	      text
+	    });
+	}
+
 	updateLocationMarkers(index,tmp,name){
 		let mapMarkers = [...this.state.mapMarkers];
 		mapMarkers[index].name = name;
 		this.setState({mapMarkers});
 	}
-	updateData(file){
-	 	let data = [...this.state.mapMarkers];
-	 	let geojson = [...this.state.geojson];
-	 	let mapMarkers = [...this.state.mapMarkers];
-	 	let stutsUpdata = !this.state.stutsUpdata;
-	 	let coordinates;
-		const features=[];
-		data = JSON.parse(file);
-		geojson = data;
-		data.features ?
-			data.features.map((value,i)=>(
-				value.type == "Marker" ? (coordinates=value.geometry.coordinates, mapMarkers.push({coordinates})): features.push(value)
-			)): null
-		geojson.features=features;
-		this.setState({
-	      mapMarkers,
-	      geojson,
-	      data,
-	      stutsUpdata
-	    });	 	
-	}
+	
+
+
 	render(){
 		return(
+
 			<div>
 			<MuiThemeProvider>
 				{/* Nút tạo Marker*/}
 				<div class="btn-row">
 					<div><FlatButton class="btn" onClick={() => this.buttonClick()} class = "btn"><img src={require("./marker.svg")} height = "20"/></FlatButton></div>
-					<div><OpenFolder updateData = {this.updateData} /></div>					
+					<div><OpenFolder/></div>
+					<div><Edit  onClick={()=> this.pl()}></Edit></div> 					
 				</div>
 				<div><Map
 				    style={styles}
 				    containerStyle={mapStyle}
 				 	onClick = {this._onClickMap}>
-				 	{(this.state.stutsUpdata) ? 
-				 	 <LoadGeojson mapMarkers = {this.state.mapMarkers}
-				 		updateLocationMarkers= {this.updateLocationMarkers}
-				 		geojson = {this.state.geojson}
-				 		/>: null }
 
-				 	
+				 	{(this.state.text) ? 
+				 	(<div><MapMarkers mapMarkers={this.state.mapMarkers}
+				 	updateLocationMarkers={this.updateLocationMarkers}
+				 	/><GeojsonLayer data={this.state.geojson}/></div>) : null }
+
 						{this.state.coordinates.map((marker, i) =>{
 							return (
 							<div key= {i} >
